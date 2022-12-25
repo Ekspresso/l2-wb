@@ -1,5 +1,24 @@
 package main
 
+// Отсортировать строки в файле по аналогии с консольной утилитой sort
+// (man sort — смотрим описание и основные параметры): на входе подается файл из несортированными строками, на выходе — файл с отсортированными.
+
+// Реализовать поддержку утилитой следующих ключей:
+
+// -k — указание колонки для сортировки (слова в строке могут выступать в качестве колонок, по умолчанию разделитель — пробел)
+// -n — сортировать по числовому значению
+// -r — сортировать в обратном порядке
+// -u — не выводить повторяющиеся строки
+
+// Дополнительно
+
+// Реализовать поддержку утилитой следующих ключей:
+
+// -M — сортировать по названию месяца
+// -b — игнорировать хвостовые пробелы
+// -c — проверять отсортированы ли данные
+// -h — сортировать по числовому значению с учетом суффиксов
+
 import (
 	"bufio"
 	"flag"
@@ -13,6 +32,7 @@ import (
 	"strings"
 )
 
+// Структура, хранящая в себе флаги.
 type SortingFlags struct {
 	column  int
 	num     bool
@@ -20,6 +40,7 @@ type SortingFlags struct {
 	unique  bool
 }
 
+// fileRead - функция построкового чтения из файла.
 func fileRead(buf *bufio.Scanner) []string {
 	s := make([]string, 0)
 
@@ -29,11 +50,13 @@ func fileRead(buf *bufio.Scanner) []string {
 	return s
 }
 
+// standartSort - функция для начальной сортировки строк.
 func standartSort(msg []string) []string {
 	sort.SliceStable(msg, func(i, j int) bool { return strings.ToLower(msg[i]) < strings.ToLower(msg[j]) })
 	return msg
 }
 
+// uniqueSort - функция удаляет из слайса строк дубликаты.
 func uniqueSort(msg []string) []string {
 	s := make(map[string]bool)
 	ret := make([]string, 0)
@@ -46,6 +69,7 @@ func uniqueSort(msg []string) []string {
 	return ret
 }
 
+// reverseSort - функция переворачивает полученный слайс строк.
 func reverseSort(msg []string) []string {
 	for i, j := 0, len(msg)-1; i < j; i, j = i+1, j-1 {
 		msg[i], msg[j] = msg[j], msg[i]
@@ -53,6 +77,7 @@ func reverseSort(msg []string) []string {
 	return msg
 }
 
+// columnSort - функция сортировки по заданной колонке. Сортирует как по числам, так и по символам.
 func columnSort(msg []string, fl *SortingFlags) []string {
 	s := make([][]string, 0)
 
@@ -102,6 +127,7 @@ func columnSort(msg []string, fl *SortingFlags) []string {
 	return ret
 }
 
+// sortFile - основная функция сортировки. Последовательно вызывает необходимые функции в зависимости от флагов.
 func sortFile(msg []string, fl *SortingFlags) []byte {
 	msg = standartSort(msg)
 
@@ -120,6 +146,7 @@ func sortFile(msg []string, fl *SortingFlags) []byte {
 	return []byte(strings.Join(msg, "\n"))
 }
 
+// concat - функция конкатенации 2 строк
 func concat(x, y string) string {
 	var builder strings.Builder
 	builder.Grow(len(x) + len(y)) // Эта строка выделяет память
