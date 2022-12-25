@@ -1,0 +1,5 @@
+drwxrwxr-x 4 konstantin konstantin 4096 ноя 18 07:54 l0
+drwxrwxr-x 9 konstantin konstantin 4096 ноя 28 11:55 l1
+drwxrwxr-x 6 konstantin konstantin 4096 дек 23 05:21 l2
+-rw-rw-r-- 1 konstantin konstantin 1347 ноя 18 09:50 psql_commands_l0
+drwxrwxr-x 2 konstantin konstantin 4096 ноя 17 02:45 .vscode
