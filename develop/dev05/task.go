@@ -23,6 +23,7 @@ import (
 	"strings"
 )
 
+// GrepFlags - структура, хранящая флаги, считанный файл и шаблон поиска.
 type GrepFlags struct {
 	after     int
 	before    int
@@ -34,16 +35,9 @@ type GrepFlags struct {
 	lineNum   bool
 	msg       []string
 	sub       string
-	out       io.Writer
 }
 
-// func (g *GrepFlags) addNumLine() {
-// 	for i := 0; i < len(g.sub); i++ {
-// 		num := concat(strconv.Itoa(i+1), ": ")
-// 		g.msg[i] = concat(num, g.msg[i])
-// 	}
-// }
-
+// countLines - считает количество вхождений шаблона и выводит на экран.
 func (g *GrepFlags) countLines(reg *regexp.Regexp) {
 	c := 0
 
@@ -59,6 +53,7 @@ func (g *GrepFlags) countLines(reg *regexp.Regexp) {
 	}
 }
 
+// printResult - печатает результат поиска.
 func (g *GrepFlags) printResult(indMap map[int]bool) {
 	if g.invert {
 		for i := 0; i < len(g.msg); i++ {
@@ -79,17 +74,21 @@ func (g *GrepFlags) printResult(indMap map[int]bool) {
 	}
 }
 
+// Grep - основная функция поиска. Обрабатывает флаги, шаблон поиска. Выполняет поиск.
 func (g *GrepFlags) Grep() {
 	var reg *regexp.Regexp
 	var err error
 	var sub string
 
+	// Коррекция шаблона поиска для соответствия всей строке.
 	if g.fixed {
 		sub = concat(`^`, g.sub)
 		sub = concat(sub, `$`)
 	} else {
 		sub = g.sub
 	}
+
+	// Коррекция шаблона поиска для игнорирования регистра.
 	if g.ignRegist {
 		reg, err = regexp.Compile(concat("(?i)", sub))
 	} else {
@@ -100,6 +99,7 @@ func (g *GrepFlags) Grep() {
 		return
 	}
 
+	// Если задан флаг подсчёта вхождений, то выполняется печать только этого числа.
 	if g.count {
 		g.countLines(reg)
 		return
@@ -108,6 +108,7 @@ func (g *GrepFlags) Grep() {
 		g.before = findMax(g.before, g.context)
 	}
 	indMap := make(map[int]bool)
+	// Цикл поиска. Сравнивает шаблон со строками, затем добавляет индексы соответствующих строк в карту, с учётом заданных диапазонов.
 	for ind, val := range g.msg {
 		if reg.MatchString(val) {
 			indMap[ind] = true
@@ -119,9 +120,11 @@ func (g *GrepFlags) Grep() {
 			}
 		}
 	}
+	// Функция распечатает строки, соответствующие индексам, хранящимся в карте.
 	g.printResult(indMap)
 }
 
+// fileRead - функция чтения данных из файла и записи в слайс строк.
 func fileRead(buf *bufio.Scanner) []string {
 	s := make([]string, 0)
 
@@ -131,6 +134,7 @@ func fileRead(buf *bufio.Scanner) []string {
 	return s
 }
 
+// findMax - функция поиска максимума для ситуаций противоречий флагов A, B и C.
 func findMax(x, y int) int {
 	if x >= y {
 		return x
@@ -200,7 +204,6 @@ func main() {
 		lineNum:   lineNumFl,
 		msg:       msg,
 		sub:       sub,
-		out:       os.Stdout,
 	}
 	g.Grep()
 }
