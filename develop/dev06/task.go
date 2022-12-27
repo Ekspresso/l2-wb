@@ -15,6 +15,7 @@ import (
 // -d - "delimiter" - использовать другой разделитель
 // -s - "separated" - только строки с разделителем
 
+// Cuter - структура, хранящая флаги, стролбцы.
 type Cuter struct {
 	sl        []string
 	Fields    []string
@@ -27,6 +28,7 @@ func (c *Cuter) split(text string) []string {
 	return strings.Split(text, c.Delim)
 }
 
+// Cut - основная реализация функции cut
 func (c *Cuter) Cut(text string) string {
 
 	c.sl = c.split(text)
@@ -48,7 +50,7 @@ func (c *Cuter) Cut(text string) string {
 		}
 
 		if len(c.sl)-1 > j {
-			j -= 1
+			j--
 			if j < 0 {
 				j = 0
 			}
