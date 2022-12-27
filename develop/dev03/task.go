@@ -171,10 +171,8 @@ func main() {
 
 	fl := &SortingFlags{unique: unique, column: column, reverse: reverse, num: num}
 	// fl := &SortingFlags{unique: true, column: 2, reverse: true, num: true}
-	fmt.Println(fl)
 	filename := flag.Arg(0)
 	// filename := "text.txt"
-	fmt.Println(filename)
 	if filename == "" {
 		fmt.Println("error: enter the file name")
 		os.Exit(1)
