@@ -34,25 +34,28 @@ func main() {
 	flag.IntVar(&timeout, "timeout", 10, "таймаут на подключение")
 	flag.Parse()
 
+	fmt.Println("Timeout: ", timeout)
+	fmt.Println(flag.Args())
 	var wg sync.WaitGroup
 	// Проверка передаваемых аргументов
-	if len(os.Args) != 3 && len(os.Args) != 5 {
+	if len(flag.Args()) != 2 {
 		fmt.Fprintf(os.Stderr, "Usage: %s -timeout host port ", os.Args[0])
 		os.Exit(1)
 	}
 	// Преобразование аргументов в адрес
-	host := os.Args[1]
-	port := os.Args[2]
+	host := flag.Args()[0]
+	port := flag.Args()[1]
 	serv := host + ":" + port
 	// Вызов функции для подключения к адресу
-	connection(serv, time.Duration(timeout), &wg)
+	connection(serv, time.Duration(timeout)*time.Second, &wg)
 }
 
 // Функция подключения к адресу и отправки и обработки данных
 func connection(serv string, timeout time.Duration, wg *sync.WaitGroup) {
-	conn, err := net.DialTimeout("tcp", serv, timeout*time.Second) // открываем TCP-соединение к серверу
+	conn, err := net.DialTimeout("tcp", serv, timeout) // открываем TCP-соединение к серверу с таймаутом
 	if err != nil {
 		fmt.Println("Error connection")
+		time.Sleep(timeout)
 		os.Exit(0)
 	}
 	defer conn.Close()
@@ -68,22 +71,33 @@ func connection(serv string, timeout time.Duration, wg *sync.WaitGroup) {
 		defer wg.Done()
 		for {
 			select {
+			// Прослушивание канала с системными сигналами
 			case <-ctxAll.Done():
 				fmt.Println("Ending by context sys signal")
 				return
 			default:
 				var word []byte
 				scan := bufio.NewScanner(os.Stdin)
+				// Считывание командной строки и запись строки в переменную  word
 				if scan.Scan() {
 					word = scan.Bytes()
+				} else { // Если был системный сигнал (EOF), то контекст отменяется
+					cancelAll()
+					return
+				}
+				// Если длина строки 0, то ничего не происходит
+				if len(word) == 0 {
+					continue
 				}
 				fmt.Println("Your word: ", string(word))
-				// err := conn.SetDeadline(time.Now().Add(timeout))
-				// if err != nil {
-				// 	fmt.Println("err write deadline: ", err.Error())
-				// 	cancelAll()
-				// 	continue
-				// }
+				// Установка таймаута на чтение и запись с сервера
+				err := conn.SetDeadline(time.Now().Add(timeout))
+				if err != nil {
+					fmt.Println("err write deadline: ", err.Error())
+					cancelAll()
+					continue
+				}
+				// Отправка данны на сервер
 				n, err := conn.Write(word)
 				if err != nil && n == 0 {
 					fmt.Println("Error write: ", err.Error())
@@ -91,12 +105,14 @@ func connection(serv string, timeout time.Duration, wg *sync.WaitGroup) {
 					continue
 				}
 				buf := make([]byte, 1024)
+				// Чтение ответа сервера
 				n, err = conn.Read(buf)
 				if err != nil && n == 0 {
 					fmt.Println("Error read: ", err.Error())
 					cancelAll()
 					continue
 				}
+				// Вывод ответа в stdOut
 				fmt.Println(string(buf[:n]))
 			}
 		}

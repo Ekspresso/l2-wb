@@ -45,6 +45,7 @@ func handleClient(conn net.Conn) {
 			fmt.Println("Read error")
 			break
 		}
+		// time.Sleep(11 * time.Second)
 		word := string(buf[:n])
 		transl, ok := dict[word]
 		if !ok {
